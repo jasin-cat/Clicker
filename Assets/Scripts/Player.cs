@@ -1,3 +1,4 @@
+using UniRx;
 using UnityEngine;
 
 public class Player : PooledObject
@@ -11,6 +12,7 @@ public class Player : PooledObject
         _collision = new Collision();
         _collision.AddCollisionObject(this.gameObject);
     }
+
     private void OnEnable()
     {
         _transform = this.transform;

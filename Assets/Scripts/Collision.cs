@@ -39,7 +39,6 @@ public class Collision
                 if(CollisionEnableObjects[i] == obj || !CollisionEnableObjects[i]) continue;
 
                 Vector3 enemyPos = CollisionEnableObjects[i].transform.position;
-                Debug.Log(enemyPos);
 
             Debug.Log($"vector:{Vector2.Distance(pos, enemyPos)}");
 
@@ -56,10 +55,4 @@ public class Collision
         IsHit.Value = true;
         Debug.Log("Hit!");
     }
-
-    public void Debugaaa()
-    {
-        Debug.Log("aaa");
-    }
-    
 }
