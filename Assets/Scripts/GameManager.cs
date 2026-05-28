@@ -2,29 +2,36 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UniRx;
+using System;
+using Unity.VisualScripting;
 
 public class GameManager : MonoBehaviour
 {
+    CancellationTokenSource source = new CancellationTokenSource();
+    private SOGold _gold;
     private PoolManager _playerPoolPrefab;
     private PoolManager _playerPool;
     private PoolManager _enemyPoolPrefab;
     private PoolManager _enemyPool;
+    private Click _click;
     private int _clickCount = 0;
     public int ClickCount => _clickCount;
 
+    private int _level = 2;
     private async void OnEnable()
     {
-        CancellationTokenSource source = new CancellationTokenSource();
-        CancellationToken token = source.Token;
-
-        var poolHandle = await GetPoolMangers(token);
+        var poolHandle = await GetPoolMangers(source.Token);
         _enemyPoolPrefab = poolHandle.enemy;
         _playerPoolPrefab = poolHandle.player;
 
         InstacePoolManagers();
 
-        PooledObject obj = _playerPool.GetPooledObject();
-        obj.transform.position = Vector2.zero;
+        _gold = await RegisterSOGold(source.Token);
+
+        _click = new Click(this, PlayerEnable);
+
+        EnemyEnable();
     }
 
 /// <summary>
@@ -60,5 +67,48 @@ public class GameManager : MonoBehaviour
     {
         if(_playerPool is null) _playerPool = Instantiate(_playerPoolPrefab);
         if(_enemyPool is null) _enemyPool = Instantiate(_enemyPoolPrefab);
+    }
+
+/// <summary>
+/// SOGoldをAddressableで持ってくる
+/// </summary>
+    private async UniTask<SOGold> RegisterSOGold(CancellationToken token)
+    {
+        var handle = Addressables
+                            .LoadAssetAsync<SOGold>("Gold")
+                            .ToUniTask(
+                                cancellationToken : token,
+                                autoReleaseWhenCanceled : true
+                            );
+
+        SOGold gold = await handle;
+
+        return gold;
+    }
+
+
+    private void PlayerEnable()
+    {
+        PooledObject obj = _playerPool.GetPooledObject();
+        obj.transform.position = Vector2.zero;
+
+        Debug.Log("生成！");
+    }
+
+    private Enemy EnemyEnable()
+    {
+        Enemy obj = _enemyPool.GetPooledObject() as Enemy;
+        obj.gameObject.SetActive(true);
+        obj.transform.position = new Vector2(5f, 0f);
+        obj.Initialize(_level);
+        obj.IsDead += GetGold;
+
+        return obj;
+    }
+
+    private void GetGold()
+    {
+        int cost = Mathf.FloorToInt(10f * Mathf.Pow(1.07f, _level));
+        _gold.AddGold(cost);
     }
 }

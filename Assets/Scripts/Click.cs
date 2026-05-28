@@ -1,6 +1,9 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using UniRx;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
@@ -11,17 +14,22 @@ public class Click
     GameManager _gameManager;
     SOGold _gold;
     private InputActions _inputActions;
-    public Click(GameManager manager)
+    public Action IsClick;
+    private bool _clickwait = true;
+
+    CancellationTokenSource source = new();
+    public Click(GameManager manager, Action action)
     {
         _gameManager = manager;
 
-        CancellationTokenSource source = new();
-        CancellationToken token = source.Token;
+        
         
         _inputActions = new();
         _inputActions.Mouse.Click.performed += OnLeftClick;
 
-        Init(token).Forget();
+        IsClick = action;
+
+        Init(source.Token).Forget();
     }
 
     private async UniTaskVoid Init(CancellationToken token)
@@ -46,6 +54,23 @@ public class Click
 
     private void OnLeftClick(InputAction.CallbackContext context)
     {
-        if(!context.started) return;
+        Debug.Log("クリックした");
+
+        if (_clickwait)
+        {
+            _clickwait = false;
+
+            IsClick?.Invoke();
+
+            ClickWait().Forget();
+        }
+
+    }
+
+    private async UniTaskVoid ClickWait()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
+
+        _clickwait = true;
     }
 }
