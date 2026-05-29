@@ -100,6 +100,15 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AttackUp"",
+                    ""type"": ""Button"",
+                    ""id"": ""b11a7bcc-731a-467b-9789-737e9632b3b8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -111,6 +120,17 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Click"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a7bc008a-6632-4d1e-8fff-00bb154ba5f2"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AttackUp"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -183,6 +203,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         // Mouse
         m_Mouse = asset.FindActionMap("Mouse", throwIfNotFound: true);
         m_Mouse_Click = m_Mouse.FindAction("Click", throwIfNotFound: true);
+        m_Mouse_AttackUp = m_Mouse.FindAction("AttackUp", throwIfNotFound: true);
     }
 
     ~@InputActions()
@@ -264,6 +285,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Mouse;
     private List<IMouseActions> m_MouseActionsCallbackInterfaces = new List<IMouseActions>();
     private readonly InputAction m_Mouse_Click;
+    private readonly InputAction m_Mouse_AttackUp;
     /// <summary>
     /// Provides access to input actions defined in input action map "Mouse".
     /// </summary>
@@ -279,6 +301,10 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Mouse/Click".
         /// </summary>
         public InputAction @Click => m_Wrapper.m_Mouse_Click;
+        /// <summary>
+        /// Provides access to the underlying input action "Mouse/AttackUp".
+        /// </summary>
+        public InputAction @AttackUp => m_Wrapper.m_Mouse_AttackUp;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -308,6 +334,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @Click.started += instance.OnClick;
             @Click.performed += instance.OnClick;
             @Click.canceled += instance.OnClick;
+            @AttackUp.started += instance.OnAttackUp;
+            @AttackUp.performed += instance.OnAttackUp;
+            @AttackUp.canceled += instance.OnAttackUp;
         }
 
         /// <summary>
@@ -322,6 +351,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @Click.started -= instance.OnClick;
             @Click.performed -= instance.OnClick;
             @Click.canceled -= instance.OnClick;
+            @AttackUp.started -= instance.OnAttackUp;
+            @AttackUp.performed -= instance.OnAttackUp;
+            @AttackUp.canceled -= instance.OnAttackUp;
         }
 
         /// <summary>
@@ -434,5 +466,12 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnClick(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "AttackUp" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnAttackUp(InputAction.CallbackContext context);
     }
 }

@@ -5,9 +5,13 @@ using UnityEngine.AddressableAssets;
 using UniRx;
 using System;
 using Unity.VisualScripting;
+using UnityEngine.Video;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField]
+    private View _view;
     CancellationTokenSource source = new CancellationTokenSource();
     private SOGold _gold;
     private PoolManager _playerPoolPrefab;
@@ -18,8 +22,12 @@ public class GameManager : MonoBehaviour
     private int _clickCount = 0;
     public int ClickCount => _clickCount;
 
-    private int _level = 2;
-    private async void OnEnable()
+    private int _level = 1;
+    public int Level => _level;
+    public static int UpGradeLevel = 1;
+    private Coroutine coroutine;
+    private bool _isDead = false;
+    private async void Awake()
     {
         var poolHandle = await GetPoolMangers(source.Token);
         _enemyPoolPrefab = poolHandle.enemy;
@@ -29,9 +37,30 @@ public class GameManager : MonoBehaviour
 
         _gold = await RegisterSOGold(source.Token);
 
-        _click = new Click(this, PlayerEnable);
+        _click = new Click(this, _gold.AddGold, _view.Gold);
 
         EnemyEnable();
+
+        _gold.Init();
+
+        _view.Gold(gold:_gold.Gold);
+
+        coroutine = StartCoroutine(AutoCreatePlayer());
+    }
+
+    // private void Start()
+    // {
+    //     StartCoroutine(AutoCreatePlayer());
+    // }
+
+    private IEnumerator AutoCreatePlayer()
+    {
+        while (true)
+        {
+            if(!_isDead) PlayerEnable();
+            yield return new WaitForSeconds(1.0f);
+        }
+        
     }
 
 /// <summary>
@@ -89,26 +118,67 @@ public class GameManager : MonoBehaviour
 
     private void PlayerEnable()
     {
-        PooledObject obj = _playerPool.GetPooledObject();
-        obj.transform.position = Vector2.zero;
-
-        Debug.Log("生成！");
+        if(Player.EnablePlayerStatic < Player.MaxEnablePlayer)
+        {
+            PooledObject obj = _playerPool.GetPooledObject();
+            obj.transform.position = Vector2.zero;
+        }        
     }
 
-    private Enemy EnemyEnable()
+    private void EnemyEnable()
     {
+        _click.IsRevive();
+
         Enemy obj = _enemyPool.GetPooledObject() as Enemy;
         obj.gameObject.SetActive(true);
         obj.transform.position = new Vector2(5f, 0f);
         obj.Initialize(_level);
         obj.IsDead += GetGold;
+        obj.IsDead += _click.IsDead;
+        obj.IsDead += EnemyDead;
+        obj.IsDead += ReviveEnemy;
 
-        return obj;
+        _view.Level(_level);
+    }
+
+    private void EnemyDead()
+    {
+        _level++;
+        _isDead = true;
+    }
+
+    private void ReviveEnemy()
+    {
+        ReviveEnemyAsync().Forget();
+    }
+
+    private async UniTaskVoid ReviveEnemyAsync()
+    {
+        await PlayerEnemyAllDisable();
+
+        await UniTask.Delay(TimeSpan.FromSeconds(2.0f));
+
+        _isDead = false;
+
+        EnemyEnable();
+    }
+
+    private async UniTask PlayerEnemyAllDisable()
+    {
+        await UniTask.WaitUntil(() => Enemy.EnableEnamyStatic == 0);
+        await UniTask.WaitUntil(() => Player.EnablePlayerStatic == 0);
     }
 
     private void GetGold()
     {
         int cost = Mathf.FloorToInt(10f * Mathf.Pow(1.07f, _level));
-        _gold.AddGold(cost);
+        _gold.AddGold(i:cost);
+        _view.Gold(gold:_gold.Gold);
+    }
+
+    void Update()
+    {
+        if(_gold is not null)
+        _view.Gold(gold:_gold.Gold);
     }
 }

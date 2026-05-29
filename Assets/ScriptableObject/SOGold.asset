@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a916dbf79c5640642ad2b72d12e13043, type: 3}
   m_Name: SOGold
   m_EditorClassIdentifier: Assembly-CSharp::SOGold
-  _gold: 0
+  _gold: 18

@@ -11,9 +11,15 @@ public class Enemy : PooledObject
     private IntReactiveProperty _hp = new(10);
     public IntReactiveProperty HP {get => _hp; set => _hp = value;}
     private IDisposable _hpDispose;
+    public static int EnableEnamyStatic = 0;
 
     private Action _isDead;
     public Action IsDead{get => _isDead; set => _isDead = value;}
+
+    private void OnEnable()
+    {
+        EnableEnamyStatic++;
+    }
 
     public void Initialize(int level)
     {
@@ -21,7 +27,6 @@ public class Enemy : PooledObject
         _collision = new EnemyHitCollision();
         _enemyGetHp = new EnemyGetHp();
 
-        _collision.AddCollisionObject(this);
         _collision.EnableCollisionObject(this);
 
         _hp.Value = _enemyGetHp.GetHp(_baseHp, level);
@@ -31,13 +36,17 @@ public class Enemy : PooledObject
             .Where(x => x < 0)
             .Subscribe(x =>
             {
+                Debug.Log("倒した");
                 IsDead.Invoke();
-                Release();                
+                Release();         
             });
     }
 
     private void OnDisable()
     {
+        EnableEnamyStatic--;
+
+        IsDead = default;
         _hpDispose?.Dispose();
         _collision?.DisableCollisionObject(this);
     }

@@ -5,39 +5,33 @@ using UnityEngine;
 
 public class EnemyHitCollision
 {
-    private static List<PooledObject> CollisionObjects = new();
-    private static List<PooledObject> CollisionEnableObjects = new();
+    private static PooledObject EnableEnemy;
     private bool isHit = false;
     public Action<bool> action;
-    public void AddCollisionObject(PooledObject obj)
-    {
-        CollisionObjects.Add(obj);
-
-        Debug.Log(CollisionObjects.Count);
-    }
-
     public void EnableCollisionObject(PooledObject obj)
     {
-        CollisionEnableObjects.Add(obj);
+        if(EnableEnemy is null)
+            EnableEnemy = obj;
     }
 
     public void DisableCollisionObject(PooledObject obj)
     {
-        CollisionEnableObjects.Remove(obj);
+        if(EnableEnemy is not null)
+        EnableEnemy = null;
     }
 
     public void Check(Player obj, float range = 1f)
     {
+        if(obj is null) return;
+
         Transform transform = obj.transform;
         Vector3 pos = transform.position;
 
-        for(int i = 0; i < CollisionEnableObjects.Count; i++)
-        {
-            PooledObject target = CollisionEnableObjects[i];
+            PooledObject target = EnableEnemy;
 
-            if(target == null || target == obj) continue;
+            if(target == null || target == obj) return;
 
-            if(obj.RoleType == target.RoleType) continue;
+            if(obj.RoleType == target.RoleType) return;
 
             Vector3 enemyPos = target.transform.position;
 
@@ -47,19 +41,19 @@ public class EnemyHitCollision
 
             if(distance < range)
             {
-                OnHit(target as Enemy, obj.Attack);
+                OnHit(target as Enemy, Player.AttackStatic);
                 return;
             }
-        }
     }
 
     private void OnHit(Enemy enemy, int attack)
     {
+        action.Invoke(isHit);
+        if(isHit) return;
         isHit = true;
         Debug.Log("Hit!");
 
         enemy.HP.Value -= attack;
-
-        action.Invoke(isHit);
+        isHit = false;
     }
 }

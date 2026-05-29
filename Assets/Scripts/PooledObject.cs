@@ -7,7 +7,7 @@ public class PooledObject : MonoBehaviour
     public RoleType RoleType => _roletype;
     private PoolManager _pool;
     public PoolManager Pool {get => _pool; set => _pool = value;}
-    protected void Release()
+    protected virtual void Release()
     {
         _pool.ReturnPool(this);
     }

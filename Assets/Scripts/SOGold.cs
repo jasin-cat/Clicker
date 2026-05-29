@@ -5,6 +5,7 @@ public class SOGold : ScriptableObject
 {
     [SerializeField]
     private int _gold;
+    public int Gold => _gold;
 
     public void AddGold(int i)
     {
@@ -14,5 +15,10 @@ public class SOGold : ScriptableObject
     public void DecreaseGold(int i)
     {
         _gold -= i;
+    }
+
+    public void Init()
+    {
+        _gold = 0;
     }
 }
